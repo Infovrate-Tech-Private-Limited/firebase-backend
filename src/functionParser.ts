@@ -173,15 +173,21 @@ export class FunctionParser {
   /**
    * Parses a .endpoint.js file and sets the endpoint path on the provided router
    *
+   * Note: router parameter uses 'any' type due to a TypeScript module resolution issue
+   * where the Router type from @types/express doesn't properly expose the 'use' method
+   * during the tsdx build process, even though it exists in the type definitions.
+   * This is a known issue with how TypeScript resolves extended interface methods.
+   *
    * @private
    * @param {string} file
-   * @param {express.Router} router
+   * @param {string} groupName
+   * @param router Express router instance
    * @memberof FunctionParser
    */
   private buildEndpoint(
     file: string,
     groupName: string,
-    router: any // Using any due to incomplete type definitions in @types/express 4.17.x
+    router: any
   ) {
     const filePath: ParsedPath = parse(file);
 
