@@ -126,7 +126,7 @@ export class FunctionParser {
       ignore: './node_modules/**',
     });
 
-    const app: Application = express();
+    const app = express();
 
     const groupRouters: Map<string, express.Router> = new Map();
 
@@ -139,23 +139,22 @@ export class FunctionParser {
         ? directories[directories.length - 2] || ''
         : directories[directories.length - 1] || '';
 
-      let router: Router | undefined = groupRouters.get(groupName);
+      let router = groupRouters.get(groupName);
 
       if (!router) {
         router = express.Router();
-
-        groupRouters.set(groupName, router);
+        groupRouters.set(groupName, router!);
       }
 
       try {
-        this.buildEndpoint(file, groupName, router);
+        this.buildEndpoint(file, groupName, router!);
       } catch (e) {
         throw new Error(
           `Restful Endpoints - Failed to add the endpoint defined in ${file} to the ${groupName} Api.`
         );
       }
 
-      app.use('/', router);
+      app.use('/', router!);
 
       this.exports[groupName] = {
         ...this.exports[groupName],
@@ -177,7 +176,7 @@ export class FunctionParser {
   private buildEndpoint(
     file: string,
     groupName: string,
-    router: express.Router
+    router: any
   ) {
     const filePath: ParsedPath = parse(file);
 
