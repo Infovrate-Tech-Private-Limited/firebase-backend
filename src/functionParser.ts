@@ -126,7 +126,7 @@ export class FunctionParser {
       ignore: './node_modules/**',
     });
 
-    const app: Application = express();
+    const app = express();
 
     const groupRouters: Map<string, express.Router> = new Map();
 
@@ -139,13 +139,17 @@ export class FunctionParser {
         ? directories[directories.length - 2] || ''
         : directories[directories.length - 1] || '';
 
-      let router: Router | undefined = groupRouters.get(groupName);
+      let currentRouter = groupRouters.get(groupName);
 
-      if (!router) {
-        router = express.Router();
-
-        groupRouters.set(groupName, router);
+      if (!currentRouter) {
+        const newRouter = express.Router();
+        groupRouters.set(groupName, newRouter);
+        currentRouter = newRouter;
       }
+
+      // After the null check above, currentRouter is guaranteed to be defined
+      // Use type assertion to help TypeScript understand this
+      const router = currentRouter as express.Router;
 
       try {
         this.buildEndpoint(file, groupName, router);
@@ -169,15 +173,21 @@ export class FunctionParser {
   /**
    * Parses a .endpoint.js file and sets the endpoint path on the provided router
    *
+   * Note: router parameter uses 'any' type due to a TypeScript module resolution issue
+   * where the Router type from @types/express doesn't properly expose the 'use' method
+   * during the tsdx build process, even though it exists in the type definitions.
+   * This is a known issue with how TypeScript resolves extended interface methods.
+   *
    * @private
    * @param {string} file
-   * @param {express.Router} router
+   * @param {string} groupName
+   * @param router Express router instance
    * @memberof FunctionParser
    */
   private buildEndpoint(
     file: string,
     groupName: string,
-    router: express.Router
+    router: any
   ) {
     const filePath: ParsedPath = parse(file);
 
