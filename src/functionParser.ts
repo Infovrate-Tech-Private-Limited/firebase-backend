@@ -139,22 +139,27 @@ export class FunctionParser {
         ? directories[directories.length - 2] || ''
         : directories[directories.length - 1] || '';
 
-      let router = groupRouters.get(groupName);
+      let currentRouter = groupRouters.get(groupName);
 
-      if (!router) {
-        router = express.Router();
-        groupRouters.set(groupName, router!);
+      if (!currentRouter) {
+        const newRouter = express.Router();
+        groupRouters.set(groupName, newRouter);
+        currentRouter = newRouter;
       }
 
+      // After the null check above, currentRouter is guaranteed to be defined
+      // Use type assertion to help TypeScript understand this
+      const router = currentRouter as express.Router;
+
       try {
-        this.buildEndpoint(file, groupName, router!);
+        this.buildEndpoint(file, groupName, router);
       } catch (e) {
         throw new Error(
           `Restful Endpoints - Failed to add the endpoint defined in ${file} to the ${groupName} Api.`
         );
       }
 
-      app.use('/', router!);
+      app.use('/', router);
 
       this.exports[groupName] = {
         ...this.exports[groupName],
@@ -176,7 +181,7 @@ export class FunctionParser {
   private buildEndpoint(
     file: string,
     groupName: string,
-    router: any
+    router: any // Using any due to incomplete type definitions in @types/express 4.17.x
   ) {
     const filePath: ParsedPath = parse(file);
 
