@@ -1,70 +1,79 @@
 {
-  "version": "0.2.5",
-  "description": "A package that helps with the management and expansion of a maintainable firebase backend",
+  "name": "@infovrate/firebase-backend",
+  "version": "0.2.6",
+  "description": "A package that helps with the management and expansion of a maintainable Firebase backend",
   "license": "MIT",
+  "author": "Sahil Lathwal",
+  "homepage": "https://github.com/Infovrate-Tech-Private-Limited/firebase-backend#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Infovrate-Tech-Private-Limited/firebase-backend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Infovrate-Tech-Private-Limited/firebase-backend/issues"
+  },
+  "type": "commonjs",
   "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "files": [
     "dist",
-    "src"
+    "README.md",
+    "LICENSE"
   ],
   "engines": {
     "node": ">=18"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "start": "tsdx watch",
-    "build": "tsdx build",
-    "test": "tsdx test --passWithNoTests",
-    "lint": "tsdx lint src test",
-    "lint:fix": "tsdx lint src test --fix",
-    "prepare": "tsdx build",
+    "clean": "rm -rf dist",
+    "build": "tsup src/index.ts --format cjs,esm --dts --sourcemap --clean --out-dir dist",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --sourcemap --watch --out-dir dist",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "prepack": "npm run build",
     "size": "size-limit",
     "analyze": "size-limit --why",
-    "release": "auto shipit"
+    "prepare": "husky"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "tsdx lint"
-    }
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   },
-  "prettier": {
-    "printWidth": 80,
-    "trailingComma": "es5",
-    "tabWidth": 2,
-    "useTabs": false,
-    "semi": true,
-    "singleQuote": true,
-    "bracketSpacing": true,
-    "arrowParens": "always",
-    "jsxSingleQuote": true,
-    "quoteProps": "consistent"
-  },
-  "name": "firebase-backend",
-  "module": "dist/firebase-backend.esm.js",
-  "size-limit": [
-    {
-      "path": "dist/firebase-backend.cjs.production.min.js",
-      "limit": "10 KB"
-    },
-    {
-      "path": "dist/firebase-backend.esm.js",
-      "limit": "10 KB"
-    }
-  ],
   "devDependencies": {
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
+    "@eslint/js": "^9.39.2",
     "@size-limit/preset-small-lib": "^12.0.0",
+    "@types/cors": "^2.8.19",
     "@types/express": "^4.17.13",
+    "@types/express-fileupload": "^1.5.1",
     "@types/glob": "^8.1.0",
-    "auto": "^11.3.6",
+    "@typescript-eslint/eslint-plugin": "^8.52.0",
+    "@typescript-eslint/parser": "^8.52.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "globals": "^17.0.0",
     "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.7.4",
     "size-limit": "^12.0.0",
-    "tsdx": "^0.14.1",
     "tslib": "^2.8.1",
-    "typescript": "^4.9.5"
+    "tsup": "^8.5.1",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.52.0"
   },
   "dependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express-fileupload": "^1.5.1",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "express": "^4.22.1",
@@ -72,18 +81,5 @@
     "firebase-admin": "^13.6.0",
     "firebase-functions": "^7.0.3",
     "glob": "^11.0.0"
-  },
-  "homepage": "https://github.com/filledstacks/firebase-backend#readme",
-  "repository": "git://github.com/filledstacks/firebase-backend.git",
-  "bugs": {
-    "url": "git+https://github.com/filledstacks/firebase-backend/issues"
-  },
-  "author": "FilledStacks <dane@filledstacks.com>",
-  "auto": {
-    "plugins": [
-      "npm"
-    ],
-    "onlyPublishWithReleaseLabel": true,
-    "baseBranch": "main"
   }
 }

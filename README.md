@@ -1,5 +1,6 @@
 # firebase-backend
 
+Forked from <https://github.com/FilledStacks/firebase-backend> and maintained by <sahillathwal/infovrate>
 [![CI](https://github.com/filledstacks/firebase-backend/actions/workflows/main.yml/badge.svg)](https://github.com/filledstacks/firebase-backend/actions/workflows/main.yml)
 [![Version](https://img.shields.io/npm/v/firebase-backend.svg)](https://www.npmjs.com/package/firebase-backend)
 ![Prerequisite](https://img.shields.io/badge/node-%3E%3D10-blue.svg)
@@ -26,7 +27,7 @@
 
 ## Requirements
 
-- node >=10
+- node >=18
 
 ## Overview
 
@@ -101,7 +102,7 @@ npm install firebase-backend
 Then you can open the index.ts file in your source folder and update it to
 
 ```ts
-import { FunctionParser } from 'firebase-backend';
+import { FunctionParser } from "firebase-backend";
 
 exports = new FunctionParser({ rootPath: __dirname, exports, verbose: true })
   .exports;
@@ -116,12 +117,12 @@ And that's also all we need to set it up. Now we can start creating functions �
 If you want to prefix all the generated cloud functions, for versioning, or for any use case, see the example below. This will add the version v2\_ infront of all deployed functions keeping your previously deployed functions in tact.
 
 ```ts
-import { FunctionParser } from 'firebase-backend';
+import { FunctionParser } from "firebase-backend";
 
 exports = new FunctionParser(__dirname, exports).exports;
 
-const backendVersion = 'v2';
-const seperator = '_';
+const backendVersion = "v2";
+const seperator = "_";
 
 for (const key in exports) {
   if (Object.prototype.hasOwnProperty.call(exports, key)) {
@@ -145,14 +146,14 @@ Let's say we wanted to make an endpoint where a client application could add a p
 
 ```ts
 // src/users/restful/addPaymentMethod.endpoint.ts
-import { Request, Response } from 'express';
-import { Post } from 'firebase-backend'; // Get, Post, Put, Update, Delete available
+import { Request, Response } from "express";
+import { Post } from "firebase-backend"; // Get, Post, Put, Update, Delete available
 
 // Use the `Post` class which is extended from the `Endpoint` class.
 export default new Post((request: Request, response: Response) => {
   // Read the values out of the body
-  const cardNumber = request.body['card_number'];
-  const cardHolder = request.body['card_holder'];
+  const cardNumber = request.body["card_number"];
+  const cardHolder = request.body["card_holder"];
 
   // Do your thing with the values
   var paymentToken = `${cardNumber}_${cardHolder}`;
@@ -237,10 +238,10 @@ Let's say we wanted to make a function that would run when the firestore db had 
 
 ```ts
 // src/users/reactive/onUserCreated.function.ts
-import * as functions from 'firebase-functions';
+import * as functions from "firebase-functions";
 
 export default functions.firestore
-  .document('users/{userId}')
+  .document("users/{userId}")
   .onCreate((userSnapshot, context) => {
     const data = userSnapshot.data();
     console.log(`User Created | send an email to ${data.email}`);
@@ -314,21 +315,21 @@ to your firebase project.
 
 ## Author
 
-**FilledStacks <dane@filledstacks.com>**
+**Infovrate <sahil@infovrate.com>**
 
 - Website: <https://www.filledstacks.com>
-- GitHub: [@FilledStacks](https://github.com/FilledStacks)
+- GitHub: [@Infovrate-Tech-Private-Limited](https://github.com/Infovrate-Tech-Private-Limited)
 
 ## Contributing
 
 Contributions, issues and feature requests are welcome!
 
 Feel free to check
-[issues page](git+https://github.com/filledstacks/firebase-backend/issues).
+[issues page](git+https://github.com/Infovrate-Tech-Private-Limited/firebase-backend/issues).
 
 ## License
 
-Copyright © 2021
-[FilledStacks <dane@filledstacks.com>](https://github.com/FilledStacks).
+Copyright © 2026
+[FilledStacks <sahil@infovrate.com>](https://github.com/Infovrate-Tech-Private-Limited).
 
 This project is [MIT](LICENSE) licensed.

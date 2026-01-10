@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from "express";
 // models.ts
 
 /**
@@ -6,11 +6,11 @@ import { Request, Response, NextFunction } from 'express';
  * @enum {number}
  */
 export enum RequestType {
-  GET = 'GET',
-  POST = 'POST',
-  PUT = 'PUT',
-  DELETE = 'DELETE',
-  PATCH = 'PATCH',
+  GET = "GET",
+  POST = "POST",
+  PUT = "PUT",
+  DELETE = "DELETE",
+  PATCH = "PATCH",
 }
 
 /**
@@ -36,7 +36,11 @@ export interface ParserOptions {
  * @export
  * @type EndpointMiddleware
  */
-export type EndpointMiddleware = (req: Request, res: Response, next: NextFunction) => any;
+export type EndpointMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => any;
 
 /**
  * @export
@@ -45,7 +49,7 @@ export type EndpointMiddleware = (req: Request, res: Response, next: NextFunctio
 export interface EndpointOptions {
   enableCors?: boolean;
   enableFileUpload?: boolean;
-  middlewares?: EndpointMiddleware[]
+  middlewares?: EndpointMiddleware[];
 }
 
 /**
@@ -74,7 +78,7 @@ export class Endpoint {
     public options?: EndpointOptions,
   ) {
     if (!handler) {
-      throw new Error('Please provide a endpoint request handler.');
+      throw new Error("Please provide a endpoint request handler.");
     }
 
     this.name = name;

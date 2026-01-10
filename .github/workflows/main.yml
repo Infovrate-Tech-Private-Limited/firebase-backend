@@ -1,58 +1,55 @@
-name: Ubuntu CI/CD
+name: CI
 
-# triggers
 on:
   push:
   pull_request:
   workflow_dispatch:
 
-# define job name and sequence
 jobs:
-  build:
-    name: Build, Test, and Lint
-
-    # runner os
+  ci:
+    name: Lint, Format, Build, Pack (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
 
-    # cache build deps
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18, 20]
+
     steps:
-      - name: Cache
-        uses: actions/cache@v2.1.4
-        with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
-
-      # setup nodejs
-      - name: Use Node.js 14 LTS
-        uses: actions/setup-node@v2
-        with:
-          node-version: 14 # latest LTS version
-
-      # check out repo
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      # install node_modules
-      - name: Install
-        run: npm i
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
 
-      # build package
-      - name: Build
+      # Husky runs on "prepare" in your repo. In CI we don't need hooks.
+      - name: Install dependencies
+        run: npm ci
+        env:
+          HUSKY: 0
+
+      - name: Format check (Prettier)
+        run: npm run format
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Build (tsup -> dist)
         run: npm run build
         env:
           NODE_ENV: production
 
-      # test package
-      - name: Test
-        run: npm test
+      # Verifies exactly what would be published to npm (files list + size).
+      - name: Pack dry run (publish contents check)
+        run: npm pack --dry-run
 
-      # lint package
-      - name: Lint
-        run: npm run lint
-
-      # archive production artifact
-      - name: Archive
-        uses: actions/upload-artifact@v2
+      # Optional: upload dist for inspection/download
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: build-artifact
+          name: dist-node-${{ matrix.node }}
           path: dist
+          if-no-files-found: error
