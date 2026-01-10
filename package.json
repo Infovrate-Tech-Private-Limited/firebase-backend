@@ -1,6 +1,6 @@
 {
   "name": "@infovrate/firebase-backend",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "A package that helps with the management and expansion of a maintainable Firebase backend",
   "license": "MIT",
   "author": "Sahil Lathwal",
