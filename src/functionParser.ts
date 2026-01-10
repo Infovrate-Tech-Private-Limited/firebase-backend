@@ -4,7 +4,7 @@ import cors from "cors";
 import express from "express";
 import fileUpload from "express-fileupload";
 import * as functions from "firebase-functions";
-import glob from "glob";
+import { globSync } from "glob";
 import { parse, ParsedPath } from "path";
 import { Endpoint, ParserOptions, RequestType } from "./models";
 
@@ -75,7 +75,7 @@ export class FunctionParser {
     if (this.verbose) log("Reactive Functions - Building...");
 
     // Get all the files that has .function in the file name
-    const functionFiles: string[] = glob.sync(
+    const functionFiles: string[] = globSync(
       `${this.rootPath}/**/*.function.js`,
       {
         cwd: this.rootPath,
@@ -121,7 +121,7 @@ export class FunctionParser {
   private buildRestfulApi(groupByFolder: boolean) {
     if (this.verbose) log("Restful Endpoints - Building...");
 
-    const apiFiles: string[] = glob.sync(`${this.rootPath}/**/*.endpoint.js`, {
+    const apiFiles: string[] = globSync(`${this.rootPath}/**/*.endpoint.js`, {
       cwd: this.rootPath,
       ignore: "./node_modules/**",
     });

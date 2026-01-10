@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.7
+
+- Fix: modern glob (v10+)
+
 ## 0.2.6
 
 - Bumped dependencies
