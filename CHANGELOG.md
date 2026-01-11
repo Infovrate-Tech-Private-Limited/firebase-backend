@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.8
+
+- Fix: Handle both windows and unix path
+
 ## 0.2.7
 
 - Fix: modern glob (v10+)

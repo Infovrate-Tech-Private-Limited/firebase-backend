@@ -5,21 +5,24 @@ import express from "express";
 import fileUpload from "express-fileupload";
 import * as functions from "firebase-functions";
 import { globSync } from "glob";
-import { parse, ParsedPath } from "path";
+import { parse, ParsedPath, resolve } from "path";
 import { Endpoint, ParserOptions, RequestType } from "./models";
 
 // enable short hand for console.log()
 const { log } = console;
+
 /**
  * Config for the {@link FunctionParser} constructor
- */ interface FunctionParserOptions {
+ */
+interface FunctionParserOptions {
   rootPath: string;
   exports: any;
   options?: ParserOptions;
   verbose?: boolean;
 }
+
 /**
- * This class helps with setting sup the exports for the cloud functions deployment.
+ * This class helps with setting up the exports for the cloud functions deployment.
  *
  * It takes in exports and then adds the required groups and their functions to it for deployment
  * to the cloud functions server.
@@ -29,15 +32,13 @@ const { log } = console;
  */
 export class FunctionParser {
   rootPath: string;
-
   enableCors: boolean;
-
   exports: any;
-
   verbose: boolean;
+
   /**
    * Creates an instance of FunctionParser.
-   * @param {FunctionParserOptions} [config]
+   * @param {FunctionParserOptions} [props]
    * @memberof FunctionParser
    */
   constructor(props: FunctionParserOptions) {
@@ -49,11 +50,12 @@ export class FunctionParser {
     this.rootPath = rootPath;
     this.exports = exports;
     this.verbose = verbose;
+
     // Set default option values for if not provided
     this.enableCors = options?.enableCors ?? false;
-    let groupByFolder: boolean = options?.groupByFolder ?? true;
-    let buildReactive: boolean = options?.buildReactive ?? true;
-    let buildEndpoints: boolean = options?.buildEndpoints ?? true;
+    const groupByFolder: boolean = options?.groupByFolder ?? true;
+    const buildReactive: boolean = options?.buildReactive ?? true;
+    const buildEndpoints: boolean = options?.buildEndpoints ?? true;
 
     if (buildReactive) {
       this.buildReactiveFunctions(groupByFolder);
@@ -86,10 +88,12 @@ export class FunctionParser {
     functionFiles.forEach((file: string) => {
       const filePath: ParsedPath = parse(file);
 
-      const directories: string[] = filePath.dir.split("/");
+      // ✅ Windows-safe split (handles / and \)
+      const directories: string[] = filePath.dir.split(/[\\/]/);
 
+      // Group name logic: pick parent folder (or last folder) safely
       const groupName: string = groupByFolder
-        ? directories[directories.length - 2] || ""
+        ? (directories.length >= 2 ? directories[directories.length - 2] : directories[0]) || ""
         : directories[directories.length - 1] || "";
 
       const functionName = filePath.name.replace(".function", "");
@@ -102,12 +106,15 @@ export class FunctionParser {
         if (this.verbose)
           log(`Reactive Functions - Added ${groupName}/${functionName}`);
 
+        // ✅ Require using absolute path so it resolves correctly no matter current module location
+        const absPath = resolve(this.rootPath, file);
         this.exports[groupName] = {
           ...this.exports[groupName],
-          ...require(file),
+          ...require(absPath),
         };
       }
     });
+
     if (this.verbose) log("Reactive Functions - Built");
   }
 
@@ -127,16 +134,16 @@ export class FunctionParser {
     });
 
     const app = express();
-
     const groupRouters: Map<string, express.Router> = new Map();
 
     apiFiles.forEach((file: string) => {
       const filePath: ParsedPath = parse(file);
 
-      const directories: Array<string> = filePath.dir.split("/");
+      // ✅ Windows-safe split (handles / and \)
+      const directories: Array<string> = filePath.dir.split(/[\\/]/);
 
       const groupName: string = groupByFolder
-        ? directories[directories.length - 2] || ""
+        ? (directories.length >= 2 ? directories[directories.length - 2] : directories[0]) || ""
         : directories[directories.length - 1] || "";
 
       let currentRouter = groupRouters.get(groupName);
@@ -147,15 +154,17 @@ export class FunctionParser {
         currentRouter = newRouter;
       }
 
-      // After the null check above, currentRouter is guaranteed to be defined
-      // Use type assertion to help TypeScript understand this
       const router = currentRouter as express.Router;
 
       try {
         this.buildEndpoint(file, groupName, router);
-      } catch (e) {
+      } catch (e: any) {
+        // ✅ Don’t hide the actual error
+        const details = e?.stack || e?.message || String(e);
         throw new Error(
-          `Restful Endpoints - Failed to add the endpoint defined in ${file} to the ${groupName} Api.`,
+          `Restful Endpoints - Failed to add the endpoint defined in ${file} to the ${groupName} Api.\n` +
+            `RootPath: ${this.rootPath}\n` +
+            `Original error:\n${details}`,
         );
       }
 
@@ -173,11 +182,6 @@ export class FunctionParser {
   /**
    * Parses a .endpoint.js file and sets the endpoint path on the provided router
    *
-   * Note: router parameter uses 'any' type due to a TypeScript module resolution issue
-   * where the Router type from @types/express doesn't properly expose the 'use' method
-   * during the tsdx build process, even though it exists in the type definitions.
-   * This is a known issue with how TypeScript resolves extended interface methods.
-   *
    * @private
    * @param {string} file
    * @param {string} groupName
@@ -187,7 +191,10 @@ export class FunctionParser {
   private buildEndpoint(file: string, groupName: string, router: any) {
     const filePath: ParsedPath = parse(file);
 
-    const endpoint: Endpoint = require(file).default as Endpoint;
+    // ✅ Require using absolute path; also support both default export and module.exports
+    const absPath = resolve(this.rootPath, file);
+    const mod = require(absPath);
+    const endpoint: Endpoint = (mod.default ?? mod) as Endpoint;
 
     const name: string =
       endpoint.name || filePath.name.replace(".endpoint", "");
@@ -230,12 +237,12 @@ export class FunctionParser {
 
       default:
         throw new Error(
-          `A unsupported RequestType was defined for a Endpoint.\n
-          Please make sure that the Endpoint file exports a RequestType
-          using the constants in src/system/constants/requests.ts.\n
-          **This value is required to add the Endpoint to the API**`,
+          `An unsupported RequestType was defined for an Endpoint.\n` +
+            `Please make sure the Endpoint file exports RequestType using the library's RequestType enum.\n` +
+            `**This value is required to add the Endpoint to the API**`,
         );
     }
+
     if (this.verbose)
       log(
         `Restful Endpoints - Added ${groupName}/${endpoint.requestType}:${name}`,
